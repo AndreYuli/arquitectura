@@ -1,11 +1,11 @@
+import model.VideoGame;
 import factory.*;
 import strategy.*;
 import repository.VideoGameRepository;
-import model.VideoGame;
-
+import dao.VideoGameDAOImpl;
+import dao.VideoGameDAO;
 
 import java.util.List;
-
 import java.util.Scanner;
 
 public class App {
@@ -16,7 +16,8 @@ public class App {
 
     public static void main(String[] args) {
         GameFactory factory = new ConcreteGameFactory();
-        VideoGameRepository repository = new VideoGameRepository();
+        VideoGameDAO videoGameDAO = new VideoGameDAOImpl();
+        VideoGameRepository repository = new VideoGameRepository(videoGameDAO);
         Scanner scanner = new Scanner(System.in);
 
         displayWelcomeMessage();
@@ -76,33 +77,48 @@ public class App {
     private static void createVideoGame(GameFactory factory, VideoGameRepository repository, Scanner scanner) {
         System.out.println("\n=== Crear Videojuego ===");
         System.out.print("Ingresa el tipo de videojuego (accion, deportes, aventura): ");
-        String gameType = scanner.next();
+        scanner.nextLine(); // Limpiar buffer
+        String gameType = scanner.nextLine();
 
-        VideoGame videoGame = factory.createGame(gameType);
-        if (videoGame == null) {
-            System.out.println("Tipo de videojuego no válido.");
-            return;
+        // Crear el objeto base usando el factory
+        GameType type = null;
+        switch (gameType.toLowerCase()) {
+            case "accion" -> type = GameType.ACTION;
+            case "deportes" -> type = GameType.SPORTS;
+            case "aventura" -> type = GameType.ADVENTURE;
+            default -> {
+                System.out.println("Tipo de videojuego no válido.");
+                return;
+            }
         }
-
+        
+        // Crear el objeto VideoGame con los datos básicos
+        VideoGame videoGame = new VideoGame();
         populateVideoGameDetails(videoGame, scanner);
+        
+        // Usar el factory para establecer características específicas del tipo
+        factory.configureGame(videoGame, type);
+        
+        // Guardar en el repositorio
         repository.save(videoGame);
 
         System.out.println("Videojuego creado y guardado exitosamente.");
-        videoGame.showInfo();
+        System.out.println(videoGame);
     }
 
     private static void populateVideoGameDetails(VideoGame videoGame, Scanner scanner) {
         System.out.print("Ingresa el ID del videojuego: ");
         videoGame.setId(validateIntInput(scanner, INVALID_ID_MESSAGE));
+        scanner.nextLine(); // Limpiar buffer
 
         System.out.print("Ingresa el nombre del videojuego: ");
-        videoGame.setName(scanner.next());
+        videoGame.setName(scanner.nextLine());
 
         System.out.print("Ingresa el género del videojuego: ");
-        videoGame.setGenre(scanner.next());
+        videoGame.setGenre(scanner.nextLine());
 
         System.out.print("Ingresa el desarrollador del videojuego: ");
-        videoGame.setDeveloper(scanner.next());
+        videoGame.setDeveloper(scanner.nextLine());
 
         System.out.print("Ingresa el precio del videojuego: ");
         videoGame.setPrice(validateDoubleInput(scanner, INVALID_PRICE_MESSAGE));
@@ -153,5 +169,63 @@ public class App {
         } else {
             System.out.println("No se encontró un videojuego con el ID: " + id);
         }
+    }
+
+    private static void applyPromotionStrategy(VideoGameRepository repository, Scanner scanner) {
+        System.out.println("\n=== Aplicar Estrategia de Promoción ===");
+        System.out.print("Ingresa el ID del videojuego: ");
+        int id = validateIntInput(scanner, INVALID_ID_MESSAGE);
+
+        VideoGame game = repository.getById(id);
+        if (game == null) {
+            System.out.println("No se encontró un videojuego con el ID: " + id);
+            return;
+        }
+
+        System.out.println("Videojuego seleccionado: " + game.getName());
+        System.out.println("Selecciona el nivel de popularidad del videojuego:");
+        System.out.println("1. Alta popularidad");
+        System.out.println("2. Media popularidad");
+        System.out.println("3. Baja popularidad");
+        System.out.print("Opción: ");
+        
+        int popularityOption = validateIntInput(scanner, INVALID_INPUT_MESSAGE);
+        PopularityStrategy strategy;
+        
+        switch (popularityOption) {
+            case 1 -> strategy = new HighPopularityStrategy();
+            case 2 -> strategy = new MediumPopularityStrategy();
+            case 3 -> strategy = new LowPopularityStrategy();
+            default -> {
+                System.out.println("Opción no válida. Operación cancelada.");
+                return;
+            }
+        }
+        
+        // Aplicar la estrategia
+        System.out.println("\nAplicando estrategia de promoción para " + game.getName() + ":");
+        strategy.applyPromotion();
+        
+        // Actualizar el precio según la estrategia
+        double originalPrice = game.getPrice();
+        double discountPercentage = 0;
+        
+        if (strategy instanceof HighPopularityStrategy) {
+            discountPercentage = 0; // No hay descuento
+        } else if (strategy instanceof MediumPopularityStrategy) {
+            discountPercentage = 0.10; // 10% de descuento
+        } else if (strategy instanceof LowPopularityStrategy) {
+            discountPercentage = 0.30; // 30% de descuento
+        }
+        
+        double newPrice = originalPrice * (1 - discountPercentage);
+        game.setPrice(newPrice);
+        
+        // Actualizar el videojuego en el repositorio
+        repository.update(game);
+        
+        System.out.println("Precio original: $" + originalPrice);
+        System.out.println("Nuevo precio con descuento: $" + newPrice);
+        System.out.println("La estrategia de promoción se aplicó exitosamente.");
     }
 }

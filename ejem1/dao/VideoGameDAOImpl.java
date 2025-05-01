@@ -1,38 +1,44 @@
 package dao;
 
-import factory.VideoGame;
+import model.VideoGame;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VideoGameDAOImpl implements VideoGameDAO {
-    private List<VideoGame> videoGames = new ArrayList<>();
+    // Usamos un Map para simular una base de datos con acceso por ID
+    private Map<Integer, VideoGame> videoGames = new HashMap<>();
 
     @Override
     public void save(VideoGame videoGame) {
-        videoGames.add(videoGame);
-        System.out.println("Videojuego guardado: " + videoGame.getClass().getSimpleName());
+        videoGames.put(videoGame.getId(), videoGame);
+        System.out.println("Videojuego guardado en DAO: " + videoGame.getName());
     }
 
     @Override
     public List<VideoGame> getAll() {
-        return videoGames;
+        return new ArrayList<>(videoGames.values());
     }
 
     @Override
-    public VideoGame getByIndex(int index) {
-        if (index >= 0 && index < videoGames.size()) {
-            return videoGames.get(index);
+    public VideoGame getById(int id) {
+        return videoGames.get(id);
+    }
+
+    @Override
+    public void deleteById(int id) {
+        if (videoGames.containsKey(id)) {
+            videoGames.remove(id);
+            System.out.println("Videojuego eliminado en DAO con ID: " + id);
         }
-        throw new IndexOutOfBoundsException("Índice fuera de rango.");
     }
-
+    
     @Override
-    public void deleteByIndex(int index) {
-        if (index >= 0 && index < videoGames.size()) {
-            videoGames.remove(index);
-            System.out.println("Videojuego eliminado en el índice: " + index);
-        } else {
-            throw new IndexOutOfBoundsException("Índice fuera de rango.");
+    public void update(VideoGame videoGame) {
+        if (videoGames.containsKey(videoGame.getId())) {
+            videoGames.put(videoGame.getId(), videoGame);
+            System.out.println("Videojuego actualizado en DAO: " + videoGame.getName());
         }
     }
 }

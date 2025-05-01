@@ -6,6 +6,7 @@ public class VideoGame {
     private String genre;
     private String developer;
     private double price;
+    private String specialFeature; // Nuevo campo para características especiales según el tipo
 
     // Constructor vacío
     public VideoGame() {
@@ -60,6 +61,14 @@ public class VideoGame {
     public void setPrice(double price) {
         this.price = price;
     }
+    
+    public String getSpecialFeature() {
+        return specialFeature;
+    }
+    
+    public void setSpecialFeature(String specialFeature) {
+        this.specialFeature = specialFeature;
+    }
 
     // Método para mostrar información del videojuego
     @Override
@@ -70,6 +79,7 @@ public class VideoGame {
                 ", genre='" + genre + '\'' +
                 ", developer='" + developer + '\'' +
                 ", price=" + price +
+                ", specialFeature='" + specialFeature + '\'' +
                 '}';
     }
 }

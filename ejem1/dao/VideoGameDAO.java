@@ -1,11 +1,12 @@
 package dao;
 
-import factory.VideoGame;
+import model.VideoGame;
 import java.util.List;
 
 public interface VideoGameDAO {
     void save(VideoGame videoGame);
     List<VideoGame> getAll();
-    VideoGame getByIndex(int index);
-    void deleteByIndex(int index);
+    VideoGame getById(int id);
+    void deleteById(int id);
+    void update(VideoGame videoGame);
 }
