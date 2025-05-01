@@ -1,0 +1,8 @@
+<dependencies>
+    <!-- Otras dependencias existentes -->
+    <dependency>
+        <groupId>com.microsoft.sqlserver</groupId>
+        <artifactId>mssql-jdbc</artifactId>
+        <version>12.4.0.jre11</version> <!-- Usa la versión compatible con tu JDK -->
+    </dependency>
+</dependencies>
