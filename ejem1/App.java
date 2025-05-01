@@ -191,41 +191,43 @@ public class App {
         
         int popularityOption = validateIntInput(scanner, INVALID_INPUT_MESSAGE);
         PopularityStrategy strategy;
+        String promotionType;
+        double discountPercentage;
         
         switch (popularityOption) {
-            case 1 -> strategy = new HighPopularityStrategy();
-            case 2 -> strategy = new MediumPopularityStrategy();
-            case 3 -> strategy = new LowPopularityStrategy();
+            case 1 -> {
+                strategy = new HighPopularityStrategy();
+                promotionType = "Alta Popularidad";
+                discountPercentage = 0;
+            }
+            case 2 -> {
+                strategy = new MediumPopularityStrategy();
+                promotionType = "Media Popularidad";
+                discountPercentage = 10;
+            }
+            case 3 -> {
+                strategy = new LowPopularityStrategy();
+                promotionType = "Baja Popularidad";
+                discountPercentage = 30;
+            }
             default -> {
                 System.out.println("Opción no válida. Operación cancelada.");
                 return;
             }
         }
         
-        // Aplicar la estrategia
+        // Aplicar la estrategia de promoción
         System.out.println("\nAplicando estrategia de promoción para " + game.getName() + ":");
         strategy.applyPromotion();
         
-        // Actualizar el precio según la estrategia
-        double originalPrice = game.getPrice();
-        double discountPercentage = 0;
+        // Guardar la promoción en la base de datos
+        repository.applyPromotion(id, promotionType, discountPercentage);
         
-        if (strategy instanceof HighPopularityStrategy) {
-            discountPercentage = 0; // No hay descuento
-        } else if (strategy instanceof MediumPopularityStrategy) {
-            discountPercentage = 0.10; // 10% de descuento
-        } else if (strategy instanceof LowPopularityStrategy) {
-            discountPercentage = 0.30; // 30% de descuento
-        }
+        // Obtener el juego actualizado para mostrar el nuevo precio
+        VideoGame updatedGame = repository.getById(id);
         
-        double newPrice = originalPrice * (1 - discountPercentage);
-        game.setPrice(newPrice);
-        
-        // Actualizar el videojuego en el repositorio
-        repository.update(game);
-        
-        System.out.println("Precio original: $" + originalPrice);
-        System.out.println("Nuevo precio con descuento: $" + newPrice);
+        System.out.println("Precio original: $" + game.getPrice());
+        System.out.println("Nuevo precio con descuento: $" + updatedGame.getPrice());
         System.out.println("La estrategia de promoción se aplicó exitosamente.");
     }
 }
